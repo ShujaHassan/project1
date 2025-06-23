@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 
 const SpeakerAdd = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const SpeakerAdd = () => {
     insta: "",
     youtube: "",
     description: "",
+    image: null,
   });
 
   const handleChange = (e) => {
@@ -17,20 +19,51 @@ const SpeakerAdd = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleImageChange = (e) => {
+    setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Speaker Submitted:", formData);
-    alert("Speaker added successfully!");
-    setFormData({
-      name: "",
-      season: "",
-      initiative: "",
-      role: "",
-      fb: "",
-      insta: "",
-      youtube: "",
-      description: "",
-    });
+
+    try {
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("season", formData.season);
+      data.append("initiative", formData.initiative);
+      data.append("role", formData.role);
+      data.append("fb", formData.fb);
+      data.append("insta", formData.insta);
+      data.append("yt", formData.youtube);
+      data.append("description", formData.description);
+      if (formData.image) {
+        data.append("image", formData.image);
+      }
+
+      await axios.post("http://localhost:5000/api/speakers", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Speaker added successfully!");
+
+      // Reset form
+      setFormData({
+        name: "",
+        season: "",
+        initiative: "",
+        role: "",
+        fb: "",
+        insta: "",
+        youtube: "",
+        description: "",
+        image: null,
+      });
+    } catch (err) {
+      console.error("Error adding speaker:", err);
+      alert("Failed to add speaker.");
+    }
   };
 
   return (
@@ -127,16 +160,16 @@ const SpeakerAdd = () => {
             />
           </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Speaker Image</label>
-                <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-                className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Speaker Image</label>
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+            />
+          </div>
 
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700">Description</label>
@@ -148,8 +181,6 @@ const SpeakerAdd = () => {
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             ></textarea>
           </div>
-
-            
 
           <div className="md:col-span-2 text-right">
             <button

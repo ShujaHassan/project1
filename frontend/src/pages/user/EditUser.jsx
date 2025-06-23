@@ -1,27 +1,59 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 const EditUser = () => {
-  // Dummy pre-filled user data (would be fetched in real app)
+  const { id } = useParams(); // for dynamic routing like /edit-user/1
   const [formData, setFormData] = useState({
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    username: "johndoe",
+    name: "",
+    email: "",
+    username: "",
     password: "",
-    role: "admin",
+    role: "user",
     status: "active",
-    created_at: "2024-01-01",
   });
+
+  // Fetch user data by ID
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/users/${id}`);
+        const data = await res.json();
+        setFormData({ ...data, password: "" }); // don't show password
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+    fetchUser();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("User Updated:", formData);
-    alert("User updated successfully!");
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(`Error: ${data.error}`);
+        return;
+      }
+
+      alert("User updated successfully!");
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert("Server error");
+    }
   };
 
   return (

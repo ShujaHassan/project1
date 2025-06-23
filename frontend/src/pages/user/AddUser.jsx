@@ -15,24 +15,43 @@ const AddUser = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("User Submitted:", formData);
-    alert("User added successfully!");
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      username: "",
-      password: "",
-      role: "user",
-      status: "active",
-    });
+
+    try {
+      const res = await fetch("http://localhost:5000/api/users/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(`Error: ${data.error}`);
+        return;
+      }
+
+      alert("User added successfully!");
+      setFormData({
+        name: "",
+        email: "",
+        username: "",
+        password: "",
+        role: "user",
+        status: "active",
+      });
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Server error. Try again.");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br py-30 px-10 ">
-      <div className="max-w-48x0 mx-auto bg-white from-blue-50 to-blue-100 p-8 rounded-2xl shadow-lg ">
+    <div className="min-h-screen bg-gradient-to-br py-20 px-10">
+      <div className="max-w-8xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-blue-700 mb-2">User Management</h1>
           <p className="text-gray-500">Add new user to the system</p>
@@ -93,6 +112,7 @@ const AddUser = () => {
               name="role"
               value={formData.role}
               onChange={handleChange}
+              required
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             >
               <option value="admin">Admin</option>
@@ -106,6 +126,7 @@ const AddUser = () => {
               name="status"
               value={formData.status}
               onChange={handleChange}
+              required
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             >
               <option value="active">Active</option>

@@ -1,45 +1,51 @@
-// auth.js
 const express = require("express");
-const jwt = require("jsonwebtoken");
+const mysql = require("mysql");
 const bcrypt = require("bcrypt");
-const db = require("./db");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
 
-const router = express.Router();
-const JWT_SECRET = "secretKey";
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-// ✅ Register
-router.post("/register", async (req, res) => {
-  const { name, email, username, password } = req.body;
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const query = "INSERT INTO users (name, email, username, password, role, status, created_at) VALUES (?, ?, ?, ?, 'user', 'active', NOW())";
-  db.query(query, [name, email, username, hashedPassword], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: "User registered successfully" });
-  });
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "dashboard",
 });
 
-// ✅ Login
-router.post("/login", (req, res) => {
+db.connect();
+
+// Make db global
+module.exports = db;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use("/api/users", require("./routes/users")); // 👈 Our user API
+
+
+app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
+
   db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
-    if (err || results.length === 0) return res.status(401).json({ error: "User not found" });
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (results.length === 0) return res.status(401).json({ error: "User not found" });
 
     const user = results[0];
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(403).json({ error: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "1h" });
-    res.json({ message: "Login successful", token });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ error: "Invalid password" });
+
+    const token = jwt.sign({ id: user.id, username: user.username }, "your-secret-key", { expiresIn: "1h" });
+
+    res.json({ token });
   });
 });
 
-// ✅ Forgot Password (Dummy for now)
-router.post("/forgot", (req, res) => {
-  const { email } = req.body;
-  // yahan normally email bhejni hoti hai
-  res.json({ message: `Reset link sent to ${email} (dummy)` });
+app.listen(5000, () => {
+  console.log("Server running on http://localhost:5000");
 });
-
-module.exports = router;

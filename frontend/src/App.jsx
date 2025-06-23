@@ -4,7 +4,8 @@ import RegisterForm from "./component/RegisterForm";
 import ForgotPasswordForm from "./component/ForgotPasswordForm";
 import DashboardLayout from "./component/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
-import ProtectedRoute from "./component/ProtectedRoute";
+import ProtectedRoute from "./component/ProtectedRoute"; // Add this import
+
 
 // User Pages
 import AddUser from "./pages/user/AddUser";
@@ -94,7 +95,7 @@ function AppWrapper() {
 
           {/* Users */}
           <Route path="/user/add" element={<AddUser />} />
-          <Route path="/user/edit" element={<EditUser />} />
+          <Route path="/edit-user/:id" element={<EditUser />} />
           <Route path="/user/view" element={<ViewUser />} />
 
           {/* Sessions */}
