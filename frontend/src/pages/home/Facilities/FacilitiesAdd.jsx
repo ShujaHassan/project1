@@ -1,10 +1,11 @@
 import { useState } from "react";
+import axios from "axios";
 
 const AddFacilities = () => {
   const [formData, setFormData] = useState({
     name: "",
     title: "",
-    image: "",
+    image: null,
     status: "active",
   });
 
@@ -13,10 +14,37 @@ const AddFacilities = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      image: e.target.files[0],
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Facility added:", formData);
-    alert("Facility added successfully!");
+
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("title", formData.title);
+    data.append("status", formData.status);
+    if (formData.image) {
+      data.append("image", formData.image);
+    }
+
+    try {
+      await axios.post("http://localhost:5000/api/facilities", data);
+      alert("Facility added successfully!");
+      setFormData({
+        name: "",
+        title: "",
+        image: null,
+        status: "active",
+      });
+    } catch (error) {
+      console.error("Error adding facility:", error);
+      alert("Failed to add facility.");
+    }
   };
 
   return (
@@ -53,15 +81,15 @@ const AddFacilities = () => {
           </div>
 
           <div>
-                <label className="block text-sm font-medium text-gray-700">Image</label>
-                <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-                className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                />
-            </div>
+            <label className="block text-sm font-medium text-gray-700">Image</label>
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Status</label>

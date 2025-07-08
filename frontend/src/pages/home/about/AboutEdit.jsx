@@ -1,28 +1,26 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AboutEdit = () => {
-  const { id } = useParams(); // Optional: agar aap routing se ID bhej rahe ho
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  // Dummy existing about data
-  const existingAbout = {
-    id: 1,
-    heading: "Who We Are",
-    description: "We are committed to reviving culture through art and education.",
-    tab_1_heading: "Our Vision",
-    tab_2_heading: "Our Mission",
-    tab_3_heading: "Our Values",
-    tab_4_heading: "Our History",
-    tab_1_title: "Promoting Art",
-    tab_2_title: "Educating Youth",
-    tab_3_title: "Preserving Heritage",
-    tab_4_title: "Since 1954",
-    initiative: "Sovapa",
-    season: "Summer 2025",
+  const [formData, setFormData] = useState({
+    heading: "",
+    description: "",
+    tab_1_heading: "",
+    tab_2_heading: "",
+    tab_3_heading: "",
+    tab_4_heading: "",
+    tab_1_title: "",
+    tab_2_title: "",
+    tab_3_title: "",
+    tab_4_title: "",
+    initiative: "",
+    season: "",
     status: "active",
-  };
-
-  const [formData, setFormData] = useState({ ...existingAbout });
+  });
 
   const initiativeOptions = [
     "Sovapa",
@@ -33,19 +31,34 @@ const AboutEdit = () => {
   ];
 
   useEffect(() => {
-    // Simulate fetching data by ID
-    setFormData(existingAbout);
+    fetchAboutById();
   }, []);
+
+  const fetchAboutById = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/about/${id}`);
+      setFormData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch about:", err);
+      alert("Error fetching about data");
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated About:", formData);
-    alert("About updated successfully!");
+    try {
+      await axios.put(`http://localhost:5000/api/about/${id}`, formData);
+      alert("About updated successfully!");
+      navigate("/about/view"); // Adjust route if different
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Failed to update about.");
+    }
   };
 
   return (
@@ -56,10 +69,7 @@ const AboutEdit = () => {
           <p className="text-gray-500">Update about section details below</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">Heading</label>
             <input
@@ -67,18 +77,6 @@ const AboutEdit = () => {
               name="heading"
               value={formData.heading}
               onChange={handleChange}
-              required
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={4}
               required
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             />
@@ -150,6 +148,18 @@ const AboutEdit = () => {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              required
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
+            />
           </div>
 
           <div className="md:col-span-2 text-right">

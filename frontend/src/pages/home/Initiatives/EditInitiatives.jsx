@@ -1,19 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 const EditInitiatives = () => {
   const { id } = useParams();
-
-  // Dummy existing initiative data
-  const existingData = {
-    id: 1,
-    name: "Sovapa",
-    logo: "sovapa-logo.png",
-    description: "Society of Visual & Performing Arts",
-    text: "Bringing young talent into the spotlight.",
-    heading: "Empowering Artists",
-    status: "active",
-  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,19 +15,33 @@ const EditInitiatives = () => {
   });
 
   useEffect(() => {
-    // Simulate fetch
-    setFormData(existingData);
-  }, []);
+    // Fetch initiative by ID from backend
+    const fetchInitiative = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/initiatives/${id}`);
+        setFormData(res.data);
+      } catch (err) {
+        console.error("Failed to fetch initiative", err);
+      }
+    };
+
+    fetchInitiative();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Initiative:", formData);
-    alert("Initiative updated successfully!");
+    try {
+      await axios.put(`http://localhost:5000/api/initiatives/${id}`, formData);
+      alert("Initiative updated successfully!");
+    } catch (err) {
+      console.error("Update failed", err);
+      alert("Failed to update initiative.");
+    }
   };
 
   return (
@@ -70,6 +74,13 @@ const EditInitiatives = () => {
               onChange={handleChange}
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             />
+            {formData.logo && (
+              <img
+                src={`http://localhost:5000/uploads/${formData.logo}`}
+                alt="Logo Preview"
+                className="mt-3 w-24 h-24 object-contain border rounded"
+              />
+            )}
           </div>
 
           <div className="md:col-span-2">

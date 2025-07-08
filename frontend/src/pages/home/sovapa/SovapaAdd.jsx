@@ -1,9 +1,10 @@
 import { useState } from "react";
+import axios from "axios";
 
 const SovapaAdd = () => {
   const [formData, setFormData] = useState({
     fullname: "",
-    poster: "",
+    poster: null,
     dept_name_1: "",
     dept_title_1: "",
     dept_name_2: "",
@@ -26,17 +27,33 @@ const SovapaAdd = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setFormData((prev) => ({
-      ...prev,
-      poster: file ? file.name : "",
-    }));
+    setFormData((prev) => ({ ...prev, poster: file }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Sovapa Submitted:", formData);
-    alert("Sovapa entry added successfully!");
-    // Reset logic can be applied here
+
+    const data = new FormData();
+    data.append("fullname", formData.fullname);
+    data.append("poster", formData.poster);
+
+    for (let i = 1; i <= 6; i++) {
+      data.append(`dept_name_${i}`, formData[`dept_name_${i}`]);
+      data.append(`dept_title_${i}`, formData[`dept_title_${i}`]);
+    }
+
+    data.append("status", formData.status);
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/sovapa", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      alert("Sovapa added successfully!");
+      console.log("Server response:", res.data);
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("Failed to add Sovapa entry");
+    }
   };
 
   return (
@@ -66,6 +83,7 @@ const SovapaAdd = () => {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
+              required
               className="mt-1 w-full text-gray-700 border border-gray-300 px-4 py-2 rounded-md file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-blue-700"
             />
           </div>

@@ -1,31 +1,39 @@
-const ViewSponsors = () => {
-  const sponsors = [
-    {
-      id: 1,
-      name: "Arts Partner",
-      image: "partner-logo.jpg",
-      initiative: "Sovapa",
-      season: "Spring 2025",
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Creative Co.",
-      image: "creative-logo.png",
-      initiative: "Youth Program",
-      season: "Summer 2025",
-      status: "inactive",
-    },
-  ];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-  const handleEdit = (id) => {
-    alert(`Edit sponsor ${id}`);
-    // navigate(`/edit-sponsor/${id}`);
+const ViewSponsors = () => {
+  const [sponsors, setSponsors] = useState([]);
+  const navigate = useNavigate(); // ✅ useNavigate added
+
+  useEffect(() => {
+    fetchSponsors();
+  }, []);
+
+  const fetchSponsors = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/sponsor");
+      setSponsors(res.data);
+    } catch (error) {
+      console.error("Error fetching sponsors:", error);
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete sponsor ${id}`);
-    // Delete logic goes here
+  const handleEdit = (id) => {
+    navigate(`/home/edit-sponsor/${id}`); // ✅ Navigate to edit page
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this sponsor?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/sponsor/${id}`);
+        fetchSponsors();
+        alert("Sponsor deleted successfully.");
+      } catch (error) {
+        console.error("Delete failed:", error);
+        alert("Failed to delete sponsor.");
+      }
+    }
   };
 
   return (
@@ -56,7 +64,7 @@ const ViewSponsors = () => {
                   <td className="px-4 py-2 text-sm text-gray-800">{sponsor.name}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">
                     <img
-                      src={`/${sponsor.image}`}
+                      src={`http://localhost:5000/uploads/sponsors/${sponsor.image}`}
                       alt={sponsor.name}
                       className="w-12 h-12 object-contain rounded"
                     />
@@ -76,7 +84,7 @@ const ViewSponsors = () => {
                   </td>
                   <td className="px-4 py-2 text-sm text-gray-600 space-x-2">
                     <button
-                      onClick={() => handleEdit(sponsor.id)}
+                      onClick={() => handleEdit(sponsor.id)} // ✅ working edit
                       className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                     >
                       Edit
@@ -90,6 +98,13 @@ const ViewSponsors = () => {
                   </td>
                 </tr>
               ))}
+              {sponsors.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="text-center py-4 text-gray-500">
+                    No sponsors found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

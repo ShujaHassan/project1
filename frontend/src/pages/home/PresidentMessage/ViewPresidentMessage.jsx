@@ -1,39 +1,40 @@
-const ViewPresidentMessage = () => {
-  const messages = [
-    {
-      id: 1,
-      heading: "Message from the President",
-      image: "https://via.placeholder.com/100",
-      title: "Mr. Ali Khan",
-      position: "President, Arts Council",
-      description: "We are committed to promoting arts and culture...",
-      bottom_title: "Art is Life",
-      initiative: "Sovapa",
-      season: "Spring 2025",
-      status: "active",
-    },
-    {
-      id: 2,
-      heading: "A New Beginning",
-      image: "https://via.placeholder.com/100",
-      title: "Ms. Fatima Noor",
-      position: "Vice President",
-      description: "Innovation and passion drive our cultural mission.",
-      bottom_title: "Creative Pakistan",
-      initiative: "Youth Program",
-      season: "Winter 2024",
-      status: "inactive",
-    },
-  ];
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-  const handleEdit = (id) => {
-    alert(`Edit President Message ${id}`);
-    // Route to edit
+const ViewPresidentMessage = () => {
+  const [messages, setMessages] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const fetchMessages = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/president");
+      setMessages(res.data);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+      alert("Failed to load President messages.");
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete President Message ${id}`);
-    // Handle delete logic
+  const handleEdit = (id) => {
+    navigate(`/home/edit-president/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this message?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/president/${id}`);
+        alert("President message deleted.");
+        fetchMessages(); // Refresh list
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("Failed to delete.");
+      }
+    }
   };
 
   return (
@@ -66,7 +67,11 @@ const ViewPresidentMessage = () => {
                   <td className="px-4 py-2 text-sm">{msg.id}</td>
                   <td className="px-4 py-2 text-sm">{msg.heading}</td>
                   <td className="px-4 py-2 text-sm">
-                    <img src={msg.image} alt="President" className="w-16 h-16 object-cover rounded-full" />
+                    <img
+                      src={`http://localhost:5000/uploads/${msg.image}`}
+                      alt="President"
+                      className="w-16 h-16 object-cover rounded-full"
+                    />
                   </td>
                   <td className="px-4 py-2 text-sm">{msg.title}</td>
                   <td className="px-4 py-2 text-sm">{msg.position}</td>
@@ -100,6 +105,13 @@ const ViewPresidentMessage = () => {
                   </td>
                 </tr>
               ))}
+              {messages.length === 0 && (
+                <tr>
+                  <td colSpan="10" className="text-center py-4 text-gray-500">
+                    No messages found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

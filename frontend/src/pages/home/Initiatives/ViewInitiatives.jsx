@@ -1,33 +1,39 @@
-const ViewInitiatives = () => {
-  const initiatives = [
-    {
-      id: 1,
-      name: "Sovapa",
-      logo: "sovapa.png",
-      description: "Society of Visual and Performing Arts.",
-      text: "Promotes youth in fine arts.",
-      heading: "Empowering Art",
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Drama Workshop",
-      logo: "drama.png",
-      description: "Weekly acting sessions for beginners.",
-      text: "Encouraging theatre talents.",
-      heading: "Stage is Yours",
-      status: "inactive",
-    },
-  ];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-  const handleEdit = (id) => {
-    alert(`Edit initiative ${id}`);
-    // Navigate or update route logic here
+const ViewInitiatives = () => {
+  const [initiatives, setInitiatives] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchInitiatives();
+  }, []);
+
+  const fetchInitiatives = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/initiatives");
+      setInitiatives(res.data);
+    } catch (error) {
+      console.error("Error fetching initiatives:", error);
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete initiative ${id}`);
-    // Implement delete logic here
+  const handleEdit = (id) => {
+    navigate(`/home/edit-initiative/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this initiative?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/initiatives/${id}`);
+        fetchInitiatives();
+        alert("Initiative deleted");
+      } catch (error) {
+        console.error("Delete failed:", error);
+        alert("Failed to delete initiative.");
+      }
+    }
   };
 
   return (
@@ -58,7 +64,11 @@ const ViewInitiatives = () => {
                   <td className="px-4 py-2 text-sm text-gray-800">{item.id}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{item.name}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">
-                    <img src={item.logo} alt={item.name} className="w-12 h-12 object-contain" />
+                    <img
+                      src={`http://localhost:5000/uploads/${item.logo}`}
+                      alt={item.name}
+                      className="w-12 h-12 object-contain"
+                    />
                   </td>
                   <td className="px-4 py-2 text-sm text-gray-800">{item.heading}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{item.description}</td>

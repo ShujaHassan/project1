@@ -2,11 +2,12 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-
+const path = require("path"); // ✅ MISSING IMPORT
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // ✅ uses 'path'
 
 // DB Connection
 const db = mysql.createConnection({
@@ -36,7 +37,7 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-// ✅ Add User Route (new one)
+// ✅ Add User Route
 app.post("/api/users/add", (req, res) => {
   const { name, email, username, password, role, status } = req.body;
 
@@ -53,7 +54,7 @@ app.post("/api/users/add", (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(insertQuery, [name, email, username, password, role, status], (err, result) => {
+    db.query(insertQuery, [name, email, username, password, role, status], (err) => {
       if (err) {
         console.error("Insert error:", err);
         return res.status(500).json({ error: "Failed to add user" });
@@ -68,10 +69,7 @@ app.post("/api/users/add", (req, res) => {
 app.get("/api/users", (req, res) => {
   const query = "SELECT * FROM users ORDER BY id DESC";
   db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching users:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
+    if (err) return res.status(500).json({ error: "Database error" });
     res.json(results);
   });
 });
@@ -89,15 +87,12 @@ app.put("/api/users/:id", (req, res) => {
     ? [name, email, username, password, role, status, userId]
     : [name, email, username, role, status, userId];
 
-  db.query(updateQuery, values, (err, result) => {
-    if (err) {
-      console.error("Update error:", err);
-      return res.status(500).json({ error: "Database update failed" });
-    }
-
+  db.query(updateQuery, values, (err) => {
+    if (err) return res.status(500).json({ error: "Database update failed" });
     res.json({ message: "User updated successfully" });
   });
 });
+
 // ✅ Get Single User
 app.get("/api/users/:id", (req, res) => {
   const { id } = req.params;
@@ -111,13 +106,65 @@ app.get("/api/users/:id", (req, res) => {
 // ✅ Delete User
 app.delete("/api/users/:id", (req, res) => {
   const { id } = req.params;
-  db.query("DELETE FROM users WHERE id = ?", [id], (err, result) => {
+  db.query("DELETE FROM users WHERE id = ?", [id], (err) => {
     if (err) return res.status(500).json({ error: "Failed to delete user" });
     res.json({ message: "User deleted successfully" });
   });
 });
 
-// Server start
+// ✅ Routes
+const sessionRoutes = require("./routes/sessions");
+app.use("/api/sessions", sessionRoutes);
+
+const sessionDataRoutes = require("./routes/sessionData");
+app.use("/api/session-data", sessionDataRoutes);
+
+//speakers
+const speakerRoutes = require("./routes/speakers");
+app.use("/api/speakers", speakerRoutes);
+
+//Home Banner
+const bannerRoutes = require("./routes/bannerRoutes");
+app.use("/api/banner", bannerRoutes);
+
+//about
+const aboutRoutes = require("./routes/about");
+app.use("/api/about", aboutRoutes);
+
+//video api 
+const videoRoutes = require("./routes/video");
+app.use("/api/videos", videoRoutes);
+
+//president
+const presidentRoutes = require("./routes/president");
+app.use("/api", presidentRoutes);
+
+//initiative
+const initiativeRoutes = require("./routes/initiativeRoutes");
+app.use("/api/initiatives", initiativeRoutes);
+
+//sovapa api
+const sovapaRoutes = require("./routes/sovapa");
+app.use("/api/sovapa", sovapaRoutes);
+
+//sponsor api
+const sponsorRoutes = require("./routes/sponsor");
+app.use("/api/sponsor", sponsorRoutes);
+
+//facilities api
+const facilitiesRoute = require("./routes/facilities")
+app.use("/api/facilities", facilitiesRoute);
+
+//feedback api
+const feedbackRoutes = require("./routes/feedback");
+app.use("/api/feedback", feedbackRoutes);
+
+// ✅ Serve uploads folder (again, not needed twice)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+
+// ✅ Start server
 app.listen(5000, () => {
   console.log("Server running on http://localhost:5000");
 });

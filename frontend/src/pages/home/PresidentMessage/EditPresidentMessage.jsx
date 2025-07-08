@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const PresidentMessageEdit = () => {
-  const { id } = useParams(); // If needed for dynamic routing
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     heading: "",
@@ -24,32 +26,34 @@ const PresidentMessageEdit = () => {
     "Drama Workshop",
   ];
 
-  // Dummy existing data
   useEffect(() => {
-    const existingData = {
-      heading: "Message from the President",
-      image: "president.jpg",
-      title: "Cultural Growth",
-      position: "President, Arts Council",
-      description:
-        "We continue to promote creativity and cultural exchange at all levels.",
-      bottom_title: "Together We Rise",
-      initiative: "Sovapa",
-      season: "Winter 2025",
-      status: "active",
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/president/${id}`);
+        setFormData(res.data);
+      } catch (err) {
+        console.error("Failed to fetch:", err);
+        alert("Error fetching president message.");
+      }
     };
-    setFormData(existingData);
-  }, []);
+    fetchData();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated President Message:", formData);
-    alert("President Message updated successfully!");
+    try {
+      await axios.put(`http://localhost:5000/api/president/${id}`, formData);
+      alert("President message updated successfully!");
+      navigate("/view-president");
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Error updating president message.");
+    }
   };
 
   return (
@@ -74,15 +78,22 @@ const PresidentMessageEdit = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Image (file name or URL)</label>
+            <label className="block text-sm font-medium text-gray-700">Image (filename)</label>
             <input
               type="text"
               name="image"
               value={formData.image}
               onChange={handleChange}
-              required
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             />
+
+            {formData.image && (
+              <img
+                src={`http://localhost:5000/uploads/${formData.image}`}
+                alt="President"
+                className="mt-2 h-24 w-24 object-cover rounded-md border"
+              />
+            )}
           </div>
 
           <div>

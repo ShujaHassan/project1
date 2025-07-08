@@ -1,29 +1,40 @@
-const ViewFacilities = () => {
-  const facilities = [
-    {
-      id: 1,
-      name: "Main Auditorium",
-      title: "State-of-the-art performance venue",
-      image: "auditorium.jpg",
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Library",
-      title: "Extensive arts and culture archives",
-      image: "library.jpg",
-      status: "inactive",
-    },
-  ];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-  const handleEdit = (id) => {
-    alert(`Edit facility ${id}`);
-    // Implement navigation logic here
+const ViewFacilities = () => {
+  const [facilities, setFacilities] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchFacilities();
+  }, []);
+
+  const fetchFacilities = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/facilities");
+      setFacilities(res.data);
+    } catch (err) {
+      console.error("Failed to fetch facilities:", err);
+      alert("Error fetching facilities.");
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete facility ${id}`);
-    // Implement delete logic here
+  const handleEdit = (id) => {
+    navigate(`/home/edit-facility/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this facility?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/facilities/${id}`);
+        fetchFacilities();
+        alert("Facility deleted successfully!");
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("Failed to delete facility.");
+      }
+    }
   };
 
   return (
@@ -52,7 +63,13 @@ const ViewFacilities = () => {
                   <td className="px-4 py-2 text-sm text-gray-800">{facility.id}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{facility.name}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{facility.title}</td>
-                  <td className="px-4 py-2 text-sm text-gray-800">{facility.image}</td>
+                  <td className="px-4 py-2 text-sm text-gray-800">
+                    <img
+                      src={`http://localhost:5000/uploads/facilities/${facility.image}`}
+                      alt={facility.name}
+                      className="w-14 h-14 object-contain rounded"
+                    />
+                  </td>
                   <td className="px-4 py-2 text-sm">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -80,6 +97,13 @@ const ViewFacilities = () => {
                   </td>
                 </tr>
               ))}
+              {facilities.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-gray-500">
+                    No facilities found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

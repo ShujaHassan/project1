@@ -1,28 +1,43 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom"; // 👈 Add this
+
 const ViewVideo = () => {
-  const videos = [
-    {
-      id: 1,
-      link: "https://youtube.com/watch?v=abc123",
-      initiative: "Sovapa",
-      season: "Spring 2025",
-      status: "active",
-    },
-    {
-      id: 2,
-      link: "https://youtube.com/watch?v=xyz456",
-      initiative: "Youth Program",
-      season: "Winter 2024",
-      status: "inactive",
-    },
-  ];
+  const [videos, setVideos] = useState([]);
+  const navigate = useNavigate(); // 👈 Add this
+
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const fetchVideos = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/videos");
+      setVideos(res.data);
+    } catch (err) {
+      console.error("Failed to fetch videos:", err);
+      alert("Error fetching video data.");
+    }
+  };
 
   const handleEdit = (id) => {
-    alert(`Edit video ${id}`);
+    navigate(`/home/edit-video/${id}`); // 👈 Navigate to the edit page
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete video ${id}`);
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this video?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/videos/${id}`);
+        alert("Video deleted successfully.");
+        fetchVideos(); // Refresh list
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("Failed to delete video.");
+      }
+    }
   };
+
+  // ... rest of your existing table rendering code
 
   return (
     <div className="min-h-screen bg-gradient-to-br py-10 px-4">
@@ -48,7 +63,7 @@ const ViewVideo = () => {
               {videos.map((video) => (
                 <tr key={video.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 text-sm text-gray-800">{video.id}</td>
-                  <td className="px-4 py-2 text-sm text-blue-600 underline">{video.link}</td>
+                  <td className="px-4 py-2 text-sm text-blue-600 underline break-words">{video.link}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{video.initiative}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{video.season}</td>
                   <td className="px-4 py-2 text-sm">
@@ -76,6 +91,13 @@ const ViewVideo = () => {
                   </td>
                 </tr>
               ))}
+              {videos.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-gray-500">
+                    No videos found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

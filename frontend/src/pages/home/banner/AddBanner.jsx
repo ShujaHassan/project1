@@ -1,8 +1,12 @@
 import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const BannerAdd = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    img: "",
+    img: null, // for file
     heading: "",
     description: "",
     initiative: "",
@@ -24,25 +28,36 @@ const BannerAdd = () => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
     setFormData((prev) => ({
       ...prev,
-      img: file ? file.name : "",
+      img: e.target.files[0],
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Banner Submitted:", formData);
-    alert("Banner added successfully!");
-    setFormData({
-      img: "",
-      heading: "",
-      description: "",
-      initiative: "",
-      season: "",
-      status: "active",
-    });
+
+    try {
+      const data = new FormData();
+      data.append("img", formData.img);
+      data.append("heading", formData.heading);
+      data.append("description", formData.description);
+      data.append("initiative", formData.initiative);
+      data.append("season", formData.season);
+      data.append("status", formData.status);
+
+      await axios.post("http://localhost:5000/api/banner", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Banner added successfully!");
+      navigate("/home/banner/view"); // ✅ your route
+    } catch (err) {
+      console.error("Error adding banner:", err);
+      alert("Failed to add banner");
+    }
   };
 
   return (

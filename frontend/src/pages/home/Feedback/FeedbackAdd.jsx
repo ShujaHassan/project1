@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 
 const FeedbackAdd = () => {
   const [formData, setFormData] = useState({
@@ -26,22 +27,37 @@ const FeedbackAdd = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setFormData((prev) => ({ ...prev, img: file ? file.name : "" }));
+    setFormData((prev) => ({ ...prev, img: file || "" }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Feedback Submitted:", formData);
-    alert("Feedback added successfully!");
-    setFormData({
-      name: "",
-      country: "",
-      img: "",
-      text: "",
-      initiative: "",
-      season: "",
-      status: "active",
-    });
+    try {
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("country", formData.country);
+      data.append("text", formData.text);
+      data.append("initiative", formData.initiative);
+      data.append("season", formData.season);
+      data.append("status", formData.status);
+      data.append("img", formData.img); // File object
+
+      await axios.post("http://localhost:5000/api/feedback", data);
+      alert("Feedback added successfully!");
+
+      setFormData({
+        name: "",
+        country: "",
+        img: "",
+        text: "",
+        initiative: "",
+        season: "",
+        status: "active",
+      });
+    } catch (err) {
+      console.error("Error adding feedback:", err);
+      alert("Failed to add feedback.");
+    }
   };
 
   return (

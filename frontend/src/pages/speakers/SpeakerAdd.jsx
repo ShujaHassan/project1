@@ -7,9 +7,9 @@ const SpeakerAdd = () => {
     season: "",
     initiative: "",
     role: "",
-    fb: "",
-    insta: "",
-    youtube: "",
+    facebook_link: "",
+    instagram_link: "",
+    youtube_link: "",
     description: "",
     image: null,
   });
@@ -32,14 +32,15 @@ const SpeakerAdd = () => {
       data.append("season", formData.season);
       data.append("initiative", formData.initiative);
       data.append("role", formData.role);
-      data.append("fb", formData.fb);
-      data.append("insta", formData.insta);
-      data.append("yt", formData.youtube);
+      data.append("facebook_link", formData.facebook_link);
+      data.append("instagram_link", formData.instagram_link);
+      data.append("youtube_link", formData.youtube_link);
       data.append("description", formData.description);
       if (formData.image) {
         data.append("image", formData.image);
       }
 
+      // ✅ Fixed endpoint
       await axios.post("http://localhost:5000/api/speakers", data, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -48,27 +49,26 @@ const SpeakerAdd = () => {
 
       alert("Speaker added successfully!");
 
-      // Reset form
       setFormData({
         name: "",
         season: "",
         initiative: "",
         role: "",
-        fb: "",
-        insta: "",
-        youtube: "",
+        facebook_link: "",
+        instagram_link: "",
+        youtube_link: "",
         description: "",
         image: null,
       });
     } catch (err) {
-      console.error("Error adding speaker:", err);
+      console.error("Error adding speaker:", err.response?.data || err.message);
       alert("Failed to add speaker.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br py-10 px-10 ">
-      <div className="max-w-48x0 mx-auto bg-white from-blue-50 to-blue-100 p-8 rounded-2xl shadow-lg ">
+    <div className="min-h-screen bg-gradient-to-br py-10 px-10">
+      <div className="max-w-48x0 mx-auto bg-white p-8 rounded-2xl shadow-lg">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-blue-700 mb-2">Add Speaker</h1>
           <p className="text-gray-500">Add new speaker to the list</p>
@@ -131,8 +131,8 @@ const SpeakerAdd = () => {
             <label className="block text-sm font-medium text-gray-700">Facebook Link</label>
             <input
               type="text"
-              name="fb"
-              value={formData.fb}
+              name="facebook_link"
+              value={formData.facebook_link}
               onChange={handleChange}
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             />
@@ -142,8 +142,8 @@ const SpeakerAdd = () => {
             <label className="block text-sm font-medium text-gray-700">Instagram Link</label>
             <input
               type="text"
-              name="insta"
-              value={formData.insta}
+              name="instagram_link"
+              value={formData.instagram_link}
               onChange={handleChange}
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             />
@@ -153,8 +153,8 @@ const SpeakerAdd = () => {
             <label className="block text-sm font-medium text-gray-700">YouTube Link</label>
             <input
               type="text"
-              name="youtube"
-              value={formData.youtube}
+              name="youtube_link"
+              value={formData.youtube_link}
               onChange={handleChange}
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             />

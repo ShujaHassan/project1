@@ -1,13 +1,14 @@
 import { useState } from "react";
+import axios from "axios";
 
 const AddSponsor = () => {
   const [formData, setFormData] = useState({
     name: "",
-    image: "",
     initiative: "",
     season: "",
     status: "active",
   });
+  const [imageFile, setImageFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,23 +16,39 @@ const AddSponsor = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      image: e.target.files[0]?.name || "",
-    }));
+    setImageFile(e.target.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Sponsor Submitted:", formData);
-    alert("Sponsor added successfully!");
-    setFormData({
-      name: "",
-      image: "",
-      initiative: "",
-      season: "",
-      status: "active",
-    });
+
+    if (!imageFile) {
+      alert("Please select an image");
+      return;
+    }
+
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("initiative", formData.initiative);
+    data.append("season", formData.season);
+    data.append("status", formData.status);
+    data.append("image", imageFile); // for multer
+
+    try {
+      await axios.post("http://localhost:5000/api/sponsor", data);
+      alert("Sponsor added successfully!");
+
+      setFormData({
+        name: "",
+        initiative: "",
+        season: "",
+        status: "active",
+      });
+      setImageFile(null);
+    } catch (error) {
+      console.error("Error adding sponsor:", error);
+      alert("Failed to add sponsor");
+    }
   };
 
   return (

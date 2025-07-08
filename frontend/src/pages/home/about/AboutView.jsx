@@ -1,29 +1,40 @@
-const ViewAbout = () => {
-  const aboutData = [
-    {
-      id: 1,
-      heading: "About Our Culture",
-      description: "A glimpse into the cultural diversity of Pakistan.",
-      tab_1_heading: "History",
-      tab_1_title: "Rich heritage",
-      tab_2_heading: "Mission",
-      tab_2_title: "Promoting arts",
-      tab_3_heading: "Vision",
-      tab_3_title: "Global recognition",
-      tab_4_heading: "Team",
-      tab_4_title: "Creative minds",
-      initiative: "Sovapa",
-      season: "Spring 2025",
-      status: "active",
-    },
-  ];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom"; // ✅ Import navigate
 
-  const handleEdit = (id) => {
-    alert(`Edit About ${id}`);
+const ViewAbout = () => {
+  const [aboutData, setAboutData] = useState([]);
+  const navigate = useNavigate(); // ✅ Hook for navigation
+
+  useEffect(() => {
+    fetchAboutData();
+  }, []);
+
+  const fetchAboutData = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/about");
+      setAboutData(res.data);
+    } catch (err) {
+      console.error("Error fetching About data:", err);
+      alert("Failed to fetch About data.");
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete About ${id}`);
+  const handleEdit = (id) => {
+    navigate(`/home/about/edit/${id}`); // ✅ Navigate to edit page
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this record?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/about/${id}`);
+        alert("Record deleted.");
+        fetchAboutData(); // Refresh after delete
+      } catch (error) {
+        console.error("Delete failed:", error);
+        alert("Failed to delete.");
+      }
+    }
   };
 
   return (
@@ -82,6 +93,13 @@ const ViewAbout = () => {
                   </td>
                 </tr>
               ))}
+              {aboutData.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="text-center py-4 text-gray-500">
+                    No records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

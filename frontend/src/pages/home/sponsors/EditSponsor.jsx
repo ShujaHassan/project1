@@ -1,19 +1,10 @@
-
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const EditSponsor = () => {
   const { id } = useParams();
-
-  // Dummy sponsor data
-  const existingSponsor = {
-    id: 1,
-    name: "Arts Partner",
-    image: "partner-logo.jpg",
-    initiative: "Sovapa",
-    season: "Spring 2025",
-    status: "active",
-  };
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,8 +15,18 @@ const EditSponsor = () => {
   });
 
   useEffect(() => {
-    setFormData(existingSponsor); // Simulate fetch
+    fetchSponsorById();
   }, []);
+
+  const fetchSponsorById = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/sponsor/${id}`);
+      setFormData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch sponsor:", err);
+      alert("Error fetching sponsor data");
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,21 +34,41 @@ const EditSponsor = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      image: e.target.files[0]?.name || prev.image,
-    }));
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, image: file }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Sponsor:", formData);
-    alert("Sponsor updated successfully!");
+    try {
+      const form = new FormData();
+      form.append("name", formData.name);
+      form.append("initiative", formData.initiative);
+      form.append("season", formData.season);
+      form.append("status", formData.status);
+      if (formData.image instanceof File) {
+        form.append("image", formData.image);
+      }
+
+      await axios.put(`http://localhost:5000/api/sponsor/${id}`, form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Sponsor updated successfully!");
+      navigate("/home/sponsors/view");
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Failed to update sponsor.");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br py-10 px-6">
-      <div className="max-w-48xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br py-10 px-8">
+      <div className="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-blue-700 mb-2">Edit Sponsor</h1>
           <p className="text-gray-500">Update sponsor details below</p>
@@ -62,7 +83,7 @@ const EditSponsor = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             />
           </div>
 
@@ -73,9 +94,9 @@ const EditSponsor = () => {
               name="image"
               accept="image/*"
               onChange={handleFileChange}
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-blue-700"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             />
-            {formData.image && (
+            {formData.image && typeof formData.image === "string" && (
               <p className="text-sm text-gray-500 mt-1">Current: {formData.image}</p>
             )}
           </div>
@@ -88,7 +109,7 @@ const EditSponsor = () => {
               value={formData.initiative}
               onChange={handleChange}
               placeholder="e.g. Sovapa"
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             />
           </div>
 
@@ -100,7 +121,7 @@ const EditSponsor = () => {
               value={formData.season}
               onChange={handleChange}
               placeholder="e.g. Spring 2025"
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             />
           </div>
 
@@ -110,7 +131,7 @@ const EditSponsor = () => {
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>

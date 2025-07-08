@@ -1,28 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const SovapaEdit = () => {
-  const { id } = useParams(); // Assuming route like /sovapa/edit/:id
-
-  const existingSovapa = {
-    id: 1,
-    fullname: "Ahsan Raza",
-    poster: "ahsan.jpg",
-    dept_name_1: "Visual Arts",
-    dept_title_1: "Head",
-    dept_name_2: "Performing Arts",
-    dept_title_2: "Coordinator",
-    dept_name_3: "Music",
-    dept_title_3: "Instructor",
-    dept_name_4: "Dance",
-    dept_title_4: "Mentor",
-    dept_name_5: "Film & Media",
-    dept_title_5: "Producer",
-    dept_name_6: "Literature",
-    dept_title_6: "Editor",
-    status: "active",
-  };
-
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullname: "",
     poster: "",
@@ -40,11 +22,21 @@ const SovapaEdit = () => {
     dept_title_6: "",
     status: "active",
   });
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
-    // Simulate API fetch
-    setFormData(existingSovapa);
+    fetchSovapa();
   }, []);
+
+  const fetchSovapa = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/sovapa`);
+      const single = res.data.find((item) => item.id === parseInt(id));
+      if (single) setFormData(single);
+    } catch (err) {
+      console.error("Error fetching Sovapa:", err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,6 +46,7 @@ const SovapaEdit = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file);
       setFormData((prev) => ({
         ...prev,
         poster: file.name,
@@ -61,10 +54,26 @@ const SovapaEdit = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Sovapa:", formData);
-    alert("Sovapa details updated successfully!");
+    try {
+      const updatedForm = new FormData();
+      updatedForm.append("fullname", formData.fullname);
+      updatedForm.append("status", formData.status);
+      if (selectedFile) updatedForm.append("poster", selectedFile);
+
+      for (let i = 1; i <= 6; i++) {
+        updatedForm.append(`dept_name_${i}`, formData[`dept_name_${i}`]);
+        updatedForm.append(`dept_title_${i}`, formData[`dept_title_${i}`]);
+      }
+
+      await axios.put(`http://localhost:5000/api/sovapa/${id}`, updatedForm);
+      alert("Sovapa updated successfully!");
+      navigate("/home/sovapa/view"); // Redirect after update
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("Failed to update Sovapa.");
+    }
   };
 
   return (
@@ -96,7 +105,11 @@ const SovapaEdit = () => {
               onChange={handleFileChange}
               className="mt-1 w-full text-gray-700 border border-gray-300 px-4 py-2 rounded-md file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-blue-700"
             />
-            <p className="text-sm text-gray-400 mt-1">Current: {formData.poster}</p>
+            {formData.poster && (
+              <p className="text-sm text-gray-400 mt-1">
+                Current: <strong>{formData.poster}</strong>
+              </p>
+            )}
           </div>
 
           {Array.from({ length: 6 }, (_, i) => (

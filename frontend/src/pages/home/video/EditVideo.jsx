@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const EditVideo = () => {
-  const { id } = useParams(); // In real apps, you'd fetch video by this ID
-
-  // Dummy existing video data
-  const existingVideo = {
-    id: 1,
-    link: "https://youtube.com/watch?v=abcd1234",
-    initiative: "Sovapa",
-    season: "Winter 2025",
-    status: "active",
-  };
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     link: "",
@@ -29,19 +22,34 @@ const EditVideo = () => {
   ];
 
   useEffect(() => {
-    // Simulate fetching data by ID
-    setFormData(existingVideo);
+    fetchVideoById();
   }, []);
+
+  const fetchVideoById = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/videos/${id}`);
+      setFormData(res.data);
+    } catch (error) {
+      console.error("Error fetching video by ID:", error);
+      alert("Failed to load video data.");
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Video:", formData);
-    alert("Video updated successfully!");
+    try {
+      await axios.put(`http://localhost:5000/api/videos/${id}`, formData);
+      alert("Video updated successfully!");
+      navigate("/videos"); // Change route as per your route structure
+    } catch (err) {
+      console.error("Error updating video:", err);
+      alert("Failed to update video.");
+    }
   };
 
   return (
@@ -61,7 +69,7 @@ const EditVideo = () => {
               value={formData.link}
               onChange={handleChange}
               required
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
               placeholder="https://youtube.com/..."
             />
           </div>
@@ -73,7 +81,7 @@ const EditVideo = () => {
               value={formData.initiative}
               onChange={handleChange}
               required
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             >
               <option value="">Select Initiative</option>
               {initiativeOptions.map((opt, idx) => (
@@ -93,7 +101,7 @@ const EditVideo = () => {
               onChange={handleChange}
               required
               placeholder="e.g. Spring 2025"
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             />
           </div>
 
@@ -103,7 +111,7 @@ const EditVideo = () => {
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>

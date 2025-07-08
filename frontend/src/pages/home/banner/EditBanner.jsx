@@ -1,28 +1,21 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const BannerEdit = () => {
-  const { id } = useParams(); // In case you pass id via route
-
-  // Dummy existing banner data
-  const existingBanner = {
-    id: 1,
-    img: "banner1.jpg",
-    heading: "Welcome to Arts Council",
-    description: "Empowering culture and creativity",
-    initiative: "Sovapa",
-    season: "Summer 2025",
-    status: "active",
-  };
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    img: "",
+    img: "", // filename or new file
     heading: "",
     description: "",
     initiative: "",
     season: "",
     status: "active",
   });
+
+  const [oldImage, setOldImage] = useState("");
 
   const initiativeOptions = [
     "Sovapa",
@@ -33,19 +26,61 @@ const BannerEdit = () => {
   ];
 
   useEffect(() => {
-    // Simulate fetch
-    setFormData(existingBanner);
-  }, []);
+    const fetchBanner = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/banner/${id}`);
+        const data = res.data;
+        setFormData({
+          heading: data.heading,
+          description: data.description,
+          initiative: data.initiative,
+          season: data.season,
+          status: data.status,
+          img: "", // will be file if changed
+        });
+        setOldImage(data.img);
+      } catch (err) {
+        console.error("Failed to fetch banner", err);
+        alert("Error fetching banner.");
+      }
+    };
+    fetchBanner();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setFormData((prev) => ({ ...prev, img: file }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Banner:", formData);
-    alert("Banner updated successfully!");
+    try {
+      const data = new FormData();
+      data.append("heading", formData.heading);
+      data.append("description", formData.description);
+      data.append("initiative", formData.initiative);
+      data.append("season", formData.season);
+      data.append("status", formData.status);
+
+      if (formData.img) {
+        data.append("img", formData.img);
+      }
+
+      await axios.put(`http://localhost:5000/api/banner/${id}`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("Banner updated successfully!");
+      navigate("/banner/view");
+    } catch (err) {
+      console.error("Error updating banner", err);
+      alert("Failed to update banner.");
+    }
   };
 
   return (
@@ -125,15 +160,21 @@ const BannerEdit = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Banner Image (file name or URL)</label>
+            <label className="block text-sm font-medium text-gray-700">Banner Image</label>
             <input
-              type="text"
+              type="file"
               name="img"
-              value={formData.img}
-              onChange={handleChange}
-              required
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-1 w-full text-gray-700 border border-gray-300 px-4 py-2 rounded-md file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-blue-700"
             />
+            {oldImage && !formData.img && (
+              <img
+                src={`http://localhost:5000/uploads/banner/${oldImage}`}
+                alt="Current"
+                className="mt-2 w-24 h-24 object-cover rounded-md"
+              />
+            )}
           </div>
 
           <div className="md:col-span-2 text-right">

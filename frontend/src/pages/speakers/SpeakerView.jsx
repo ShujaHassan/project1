@@ -1,42 +1,45 @@
-const SpeakerView = () => {
-  const speakers = [
-    {
-      id: 1,
-      name: "Ali Raza",
-      season: "Season 3",
-      initiative: "Art Revival",
-      role: "Keynote Speaker",
-      facebook: "https://facebook.com/aliraza",
-      instagram: "https://instagram.com/aliraza",
-      youtube: "https://youtube.com/aliraza",
-      description: "Renowned figure in Pakistani art scene.",
-    },
-    {
-      id: 2,
-      name: "Fatima Khan",
-      season: "Season 2",
-      initiative: "Voice of Youth",
-      role: "Panelist",
-      facebook: "https://facebook.com/fatima",
-      instagram: "https://instagram.com/fatima",
-      youtube: "https://youtube.com/fatima",
-      description: "Youth ambassador and motivational speaker.",
-    },
-  ];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-  const handleEdit = (id) => {
-    alert(`Edit speaker with ID ${id}`);
-    // Navigate to edit page logic
+const SpeakerView = () => {
+  const [speakers, setSpeakers] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchSpeakers();
+  }, []);
+
+  const fetchSpeakers = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/speakers");
+      setSpeakers(response.data);
+    } catch (err) {
+      console.error("Failed to fetch speakers:", err);
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete speaker with ID ${id}`);
-    // Delete logic
+  const handleEdit = (id) => {
+    navigate(`/edit-speaker/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this speaker?")) {
+      try {
+        // ✅ Corrected endpoint
+        await axios.delete(`http://localhost:5000/api/speakers/${id}`);
+        alert("Speaker deleted successfully!");
+        fetchSpeakers();
+      } catch (err) {
+        console.error("Error deleting speaker:", err);
+        alert("Failed to delete speaker.");
+      }
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br py-10 px-4">
-      <div className="max-w-48xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+      <div className="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
         <div className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-blue-700 mb-2">All Speakers</h1>
           <p className="text-gray-500">List of all session speakers</p>
@@ -47,6 +50,7 @@ const SpeakerView = () => {
             <thead className="bg-gray-100">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">ID</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Image</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Name</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Season</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Initiative</th>
@@ -62,18 +66,25 @@ const SpeakerView = () => {
               {speakers.map((spk) => (
                 <tr key={spk.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 text-sm text-gray-800">{spk.id}</td>
+                  <td className="px-4 py-2 text-sm text-gray-800">
+                    <img
+                      src={`http://localhost:5000/uploads/speakers/${spk.image}`}
+                      alt={spk.name}
+                      className="w-16 h-16 object-cover rounded-md"
+                    />
+                  </td>
                   <td className="px-4 py-2 text-sm text-gray-800">{spk.name}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{spk.season}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{spk.initiative}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{spk.role}</td>
                   <td className="px-4 py-2 text-sm text-blue-600 underline">
-                    <a href={spk.facebook} target="_blank" rel="noreferrer">Facebook</a>
+                    <a href={spk.facebook_link} target="_blank" rel="noreferrer">Facebook</a>
                   </td>
                   <td className="px-4 py-2 text-sm text-pink-600 underline">
-                    <a href={spk.instagram} target="_blank" rel="noreferrer">Instagram</a>
+                    <a href={spk.instagram_link} target="_blank" rel="noreferrer">Instagram</a>
                   </td>
                   <td className="px-4 py-2 text-sm text-red-600 underline">
-                    <a href={spk.youtube} target="_blank" rel="noreferrer">YouTube</a>
+                    <a href={spk.youtube_link} target="_blank" rel="noreferrer">YouTube</a>
                   </td>
                   <td className="px-4 py-2 text-sm text-gray-600">{spk.description}</td>
                   <td className="px-4 py-2 text-sm text-gray-600 space-x-2">

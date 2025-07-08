@@ -1,9 +1,10 @@
 import { useState } from "react";
+import axios from "axios";
 
 const PresidentMessageAdd = () => {
   const [formData, setFormData] = useState({
     heading: "",
-    image: "",
+    image: null,
     title: "",
     position: "",
     description: "",
@@ -29,25 +30,43 @@ const PresidentMessageAdd = () => {
   const handleImageChange = (e) => {
     setFormData((prev) => ({
       ...prev,
-      image: e.target.files[0]?.name || "",
+      image: e.target.files[0],
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("President Message Submitted:", formData);
-    alert("President Message added successfully!");
-    setFormData({
-      heading: "",
-      image: "",
-      title: "",
-      position: "",
-      description: "",
-      bottom_title: "",
-      initiative: "",
-      season: "",
-      status: "active",
-    });
+    try {
+      const data = new FormData();
+      data.append("heading", formData.heading);
+      data.append("image", formData.image);
+      data.append("title", formData.title);
+      data.append("position", formData.position);
+      data.append("description", formData.description);
+      data.append("bottom_title", formData.bottom_title);
+      data.append("initiative", formData.initiative);
+      data.append("season", formData.season);
+      data.append("status", formData.status);
+
+      const res = await axios.post("http://localhost:5000/api/president", data);
+      alert("President Message added successfully!");
+
+      // Clear form
+      setFormData({
+        heading: "",
+        image: null,
+        title: "",
+        position: "",
+        description: "",
+        bottom_title: "",
+        initiative: "",
+        season: "",
+        status: "active",
+      });
+    } catch (err) {
+      console.error("Error adding president message:", err);
+      alert("Failed to add president message.");
+    }
   };
 
   return (

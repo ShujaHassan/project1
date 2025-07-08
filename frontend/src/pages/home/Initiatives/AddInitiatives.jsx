@@ -1,9 +1,10 @@
 import { useState } from "react";
+import axios from "axios";
 
 const AddInitiatives = () => {
   const [formData, setFormData] = useState({
     name: "",
-    logo: "",
+    logo: null, // now a File instead of just string
     description: "",
     text: "",
     heading: "",
@@ -15,10 +16,42 @@ const AddInitiatives = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      logo: e.target.files[0],
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("New Initiative:", formData);
-    alert("Initiative added successfully!");
+
+    try {
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("logo", formData.logo);
+      data.append("description", formData.description);
+      data.append("text", formData.text);
+      data.append("heading", formData.heading);
+      data.append("status", formData.status);
+
+      const res = await axios.post("http://localhost:5000/api/initiatives", data);
+      alert("Initiative added successfully!");
+      console.log(res.data);
+
+      // Reset form
+      setFormData({
+        name: "",
+        logo: null,
+        description: "",
+        text: "",
+        heading: "",
+        status: "active",
+      });
+    } catch (err) {
+      console.error("Failed to add initiative:", err);
+      alert("Error while submitting. Please try again.");
+    }
   };
 
   return (
@@ -29,7 +62,7 @@ const AddInitiatives = () => {
           <p className="text-gray-500">Fill the form to add a new initiative</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6" encType="multipart/form-data">
           <div>
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
@@ -43,13 +76,14 @@ const AddInitiatives = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Logo (file name or URL)</label>
+            <label className="block text-sm font-medium text-gray-700">Logo (Image Upload)</label>
             <input
-              type="text"
+              type="file"
               name="logo"
-              value={formData.logo}
-              onChange={handleChange}
-              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              accept="image/*"
+              onChange={handleFileChange}
+              required
+              className="mt-1 w-full text-gray-700 border border-gray-300 px-4 py-2 rounded-md file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-blue-700"
             />
           </div>
 

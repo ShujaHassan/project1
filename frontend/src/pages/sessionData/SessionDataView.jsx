@@ -1,36 +1,44 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const SessionDataView = () => {
-  const sessionDataList = [
-    {
-      id: 1,
-      name: "Demo Session",
-      season: "Season 1",
-      initiative: "Initiative A",
-      description: "This is a demo description for the session.",
-      youtube: "https://youtube.com/demo",
-    },
-    {
-      id: 2,
-      name: "Inspiration Talk",
-      season: "Season 2",
-      initiative: "Initiative B",
-      description: "Talk on leadership and innovation.",
-      youtube: "https://youtube.com/innovation",
-    },
-  ];
+  const navigate = useNavigate();
+  const [sessionDataList, setSessionDataList] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/session-data");
+        setSessionDataList(res.data);
+      } catch (error) {
+        console.error("Failed to fetch session data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleEdit = (id) => {
-    alert(`Edit session data ${id}`);
+    navigate(`/sessiondata/edit/${id}`);
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete session data ${id}`);
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this session data?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/session-data/${id}`);
+        setSessionDataList((prev) => prev.filter((item) => item.id !== id));
+        alert("Deleted successfully!");
+      } catch (err) {
+        console.error("Delete failed:", err);
+        alert("Failed to delete.");
+      }
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br py-10 px-4">
-      <div className="max-w-48xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+      <div className="max-w-8xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
         <div className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-blue-700 mb-2">All Session Data</h1>
           <p className="text-gray-500">List of all session data entries</p>
@@ -57,7 +65,9 @@ const SessionDataView = () => {
                   <td className="px-4 py-2 text-sm text-gray-800">{item.season}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{item.initiative}</td>
                   <td className="px-4 py-2 text-sm text-blue-600 underline">
-                    <a href={item.youtube} target="_blank" rel="noopener noreferrer">Link</a>
+                    <a href={item.youtube_link} target="_blank" rel="noopener noreferrer">
+                      Watch
+                    </a>
                   </td>
                   <td className="px-4 py-2 text-sm text-gray-600">{item.description}</td>
                   <td className="px-4 py-2 text-sm space-x-2">

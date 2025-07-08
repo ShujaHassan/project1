@@ -1,33 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const SessionView = () => {
-  const sessions = [
-    {
-      id: 1,
-      name: "Music Therapy",
-      oneLiner: "Healing through sound",
-      poster: "https://via.placeholder.com/80",
-      status: "active",
-      initiative: "Wellness",
-      season: "Spring 2025",
-    },
-    {
-      id: 2,
-      name: "Art & Mind",
-      oneLiner: "Creative exploration",
-      poster: "https://via.placeholder.com/80",
-      status: "inactive",
-      initiative: "Mental Health",
-      season: "Summer 2025",
-    },
-  ];
+  const [sessions, setSessions] = useState([]);
 
-  const handleEdit = (id) => {
-    alert(`Edit session ${id}`);
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const fetchSessions = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/sessions");
+      setSessions(res.data);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete session ${id}`);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this session?")) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/sessions/${id}`);
+      setSessions(sessions.filter((s) => s.id !== id));
+    } catch (err) {
+      console.error("Delete Error:", err);
+    }
+  };
+
+  const handleEdit = (id) => {
+    window.location.href = `/edit-session/${id}`; // Update as needed
   };
 
   return (
@@ -42,14 +43,9 @@ const SessionView = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">One Liner</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Poster</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Initiative</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Season</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                {["ID", "Name", "One Liner", "Poster", "Status", "Initiative", "Season", "Actions"].map((h) => (
+                  <th key={h} className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -57,9 +53,9 @@ const SessionView = () => {
                 <tr key={session.id}>
                   <td className="px-4 py-2 text-sm">{session.id}</td>
                   <td className="px-4 py-2 text-sm">{session.name}</td>
-                  <td className="px-4 py-2 text-sm">{session.oneLiner}</td>
+                  <td className="px-4 py-2 text-sm">{session.one_liner}</td>
                   <td className="px-4 py-2 text-sm">
-                    <img src={session.poster} alt="Poster" className="h-10 w-10 rounded" />
+                    <img src={`http://localhost:5000/uploads/sessions/${session.poster}`} alt="Poster" className="h-10 w-10 rounded" />
                   </td>
                   <td className="px-4 py-2 text-sm">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${session.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
@@ -83,7 +79,7 @@ const SessionView = () => {
           {sessions.map((session) => (
             <div key={session.id} className="bg-gray-50 rounded-lg p-4 shadow-sm">
               <div className="flex items-center gap-4 mb-2">
-                <img src={session.poster} alt="Poster" className="h-14 w-14 rounded object-cover" />
+                <img src={`http://localhost:5000/uploads/${session.poster}`} alt="Poster" className="h-14 w-14 rounded object-cover" />
                 <div>
                   <h2 className="font-semibold text-lg">{session.name}</h2>
                   <p className="text-sm text-gray-600">{session.oneLiner}</p>
@@ -98,12 +94,8 @@ const SessionView = () => {
                 </span>
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button onClick={() => handleEdit(session.id)} className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
-                  Edit
-                </button>
-                <button onClick={() => handleDelete(session.id)} className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600">
-                  Delete
-                </button>
+                <button onClick={() => handleEdit(session.id)} className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">Edit</button>
+                <button onClick={() => handleDelete(session.id)} className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600">Delete</button>
               </div>
             </div>
           ))}

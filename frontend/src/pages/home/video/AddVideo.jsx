@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 
 const AddVideo = () => {
   const [formData, setFormData] = useState({
@@ -21,10 +22,24 @@ const AddVideo = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("New Video:", formData);
-    alert("Video added successfully!");
+    try {
+      const res = await axios.post("http://localhost:5000/api/videos", formData);
+      alert("Video added successfully!");
+      console.log("Response:", res.data);
+
+      // Reset form after successful submit
+      setFormData({
+        link: "",
+        initiative: "",
+        season: "",
+        status: "active",
+      });
+    } catch (error) {
+      console.error("Error submitting video:", error);
+      alert("Failed to add video.");
+    }
   };
 
   return (

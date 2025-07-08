@@ -101,62 +101,62 @@ function AppWrapper() {
           {/* Sessions */}
           <Route path="/sessions/view" element={<SessionView />} />
           <Route path="/sessions/add" element={<SessionAdd />} />
-          <Route path="/sessions/edit" element={<SessionEdit />} />
+          <Route path="/edit-session/:id" element={<SessionEdit />} />
 
           {/* Speakers */}
           <Route path="/speakers/add" element={<SpeakerAdd />} />
-          <Route path="/speakers/edit" element={<SpeakerEdit />} />
+          <Route path="/edit-speaker/:id" element={<SpeakerEdit />} />
           <Route path="/speakers/view" element={<SpeakerView />} />
 
           {/* Session Data */}
           <Route path="/session-data/add" element={<SessionDataAdd />} />
           <Route path="/session-data/view" element={<SessionDataView />} />
-          <Route path="/session-data/edit" element={<SessionDataEdit />} />
+          <Route path="/sessiondata/edit/:id" element={<SessionDataEdit />} />
 
           {/* Banner */}
           <Route path="/home/banner/add" element={<AddBanner />} />
           <Route path="/home/banner/view" element={<ViewBanner />} />
-          <Route path="/home/banner/edit" element={<EditBanner />} />
+          <Route path="/home/banner/edit/:id" element={<EditBanner />} />
 
           {/* About */}
           <Route path="/home/about/add" element={<AboutAdd />} />
           <Route path="/home/about/view" element={<AboutView />} />
-          <Route path="/home/about/edit" element={<AboutEdit />} />
+          <Route path="/home/about/edit/:id" element={<AboutEdit />} />
 
           {/* Video */}
           <Route path="/home/video/add" element={<VideoAdd />} />
           <Route path="/home/video/view" element={<VideoView />} />
-          <Route path="/home/video/edit" element={<VideoEdit />} />
+          <Route path="/home/edit-video/:id" element={<VideoEdit />} />
 
           {/* President Message */}
           <Route path="/home/PresidentMessage/add" element={<AddPresidentMessage />} />
           <Route path="/home/PresidentMessage/view" element={<ViewPresidentMessage />} />
-          <Route path="/home/PresidentMessage/edit" element={<EditPresidentMessage />} />
+          <Route path="/home/edit-president/:id" element={<EditPresidentMessage />} />
 
           {/* Initiatives */}
           <Route path="/home/Initiatives/add" element={<AddInitiatives />} />
           <Route path="/home/Initiatives/view" element={<ViewInitiatives />} />
-          <Route path="/home/Initiatives/edit" element={<EditInitiatives />} />
+          <Route path="/home/edit-initiative/:id" element={<EditInitiatives />} />
 
           {/* Sovapa */}
           <Route path="/home/sovapa/add" element={<SovapaAdd />} />
           <Route path="/home/sovapa/view" element={<SovapaView />} />
-          <Route path="/home/sovapa/edit" element={<SovapaEdit />} />
+          <Route path="/home/sovapa/edit/:id" element={<SovapaEdit />} />
 
           {/* Feedback */}
           <Route path="/home/Feedback/add" element={<FeedbackAdd />} />
           <Route path="/home/Feedback/view" element={<FeedbackView />} />
-          <Route path="/home/Feedback/edit" element={<FeedbackEdit />} />
+          <Route path="/home/Feedback/edit/:id" element={<FeedbackEdit />} />
 
           {/* Facilities */}
           <Route path="/home/Facilities/add" element={<FacilitiesAdd />} />
           <Route path="/home/Facilities/view" element={<FacilitiesView />} />
-          <Route path="/home/Facilities/edit" element={<FacilitiesEdit />} />
+          <Route path="/home/edit-facility/:id" element={<FacilitiesEdit />} />
 
           {/* Sponsors */}
           <Route path="/home/sponsors/add" element={<SponsorsAdd />} />
           <Route path="/home/sponsors/view" element={<SponsorsView />} />
-          <Route path="/home/sponsors/edit" element={<SponsorsEdit />} />
+          <Route path="/home/edit-sponsor/:id" element={<SponsorsEdit />} />
         </Route>
       </Routes>
     </div>

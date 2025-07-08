@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const EditFacilities = () => {
   const { id } = useParams();
-
-  // Dummy existing data (simulate fetch)
-  const existingFacility = {
-    id: 1,
-    name: "Art Library",
-    title: "A quiet space for research",
-    image: "library.jpg",
-    status: "active",
-  };
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -21,19 +14,48 @@ const EditFacilities = () => {
   });
 
   useEffect(() => {
-    // Simulate fetch
-    setFormData(existingFacility);
+    fetchFacilityById();
   }, []);
+
+  const fetchFacilityById = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/facilities/${id}`);
+      setFormData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch facility:", err);
+      alert("Error fetching facility data.");
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Facility updated:", formData);
-    alert("Facility updated successfully!");
+    const form = new FormData();
+    form.append("name", formData.name);
+    form.append("title", formData.title);
+    form.append("status", formData.status);
+    if (formData.image instanceof File) {
+      form.append("image", formData.image);
+    }
+
+    try {
+      await axios.put(`http://localhost:5000/api/facilities/${id}`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      alert("Facility updated successfully!");
+      navigate("/home/facilities/view");
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Failed to update facility.");
+    }
   };
 
   return (
@@ -70,30 +92,30 @@ const EditFacilities = () => {
           </div>
 
           <div>
-  <label className="block text-sm font-medium text-gray-700">Speaker Image</label>
-  <input
-    type="file"
-    name="image"
-    accept="image/*"
-    onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-    className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-white"
-  />
+            <label className="block text-sm font-medium text-gray-700">Image</label>
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-white"
+            />
 
-  {formData.image && typeof formData.image === "string" && (
-    <div className="mt-3">
-      <img
-        src={formData.image}
-        alt="Current"
-        className="h-24 rounded border"
-      />
-      <p className="text-sm text-gray-500 mt-1">Current Image</p>
-    </div>
-  )}
+            {formData.image && typeof formData.image === "string" && (
+              <div className="mt-3">
+                <img
+                  src={`http://localhost:5000/uploads/facilities/${formData.image}`}
+                  alt="Current"
+                  className="h-24 rounded border"
+                />
+                <p className="text-sm text-gray-500 mt-1">Current Image</p>
+              </div>
+            )}
 
-  {formData.image && typeof formData.image === "object" && (
-    <p className="text-sm text-gray-500 mt-2">Selected file: {formData.image.name}</p>
-  )}
-</div>
+            {formData.image && typeof formData.image === "object" && (
+              <p className="text-sm text-gray-500 mt-2">Selected file: {formData.image.name}</p>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Status</label>

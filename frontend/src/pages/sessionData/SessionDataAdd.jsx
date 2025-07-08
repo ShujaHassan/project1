@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 
 const SessionDataAdd = () => {
   const [formData, setFormData] = useState({
@@ -6,8 +7,8 @@ const SessionDataAdd = () => {
     season: "",
     initiative: "",
     description: "",
-    youtube: "",
-    images: []
+    youtube_link: "", // ✅ field name updated
+    images: [],
   });
 
   const handleChange = (e) => {
@@ -19,18 +20,47 @@ const SessionDataAdd = () => {
     setFormData({ ...formData, images: Array.from(e.target.files) });
   };
 
-  const handleSubmit = (e) => {
+  const isValidYouTubeLink = (url) => {
+    return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(url);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Session Data Submitted:", formData);
-    alert("Session Data added successfully!");
-    setFormData({
-      name: "",
-      season: "",
-      initiative: "",
-      description: "",
-      youtube: "",
-      images: []
-    });
+
+    if (!isValidYouTubeLink(formData.youtube_link)) {
+      alert("Please enter a valid YouTube link.");
+      return;
+    }
+
+    try {
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("season", formData.season);
+      data.append("initiative", formData.initiative);
+      data.append("description", formData.description);
+      data.append("youtube_link", formData.youtube_link); // ✅ updated
+
+      formData.images.forEach((img) => {
+        data.append("images", img);
+      });
+
+      const res = await axios.post("http://localhost:5000/api/session-data", data);
+      alert("Session Data added successfully!");
+      console.log("Success:", res.data);
+
+      setFormData({
+        name: "",
+        season: "",
+        initiative: "",
+        description: "",
+        youtube_link: "", // ✅ reset
+        images: [],
+      });
+
+    } catch (err) {
+      console.error("Error submitting session data:", err);
+      alert("Failed to add session data.");
+    }
   };
 
   return (
@@ -42,6 +72,7 @@ const SessionDataAdd = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
@@ -54,6 +85,7 @@ const SessionDataAdd = () => {
             />
           </div>
 
+          {/* Season */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Season</label>
             <input
@@ -66,34 +98,37 @@ const SessionDataAdd = () => {
             />
           </div>
 
+          {/* Initiative */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Initiative</label>
             <select
-                name="initiative"
-                value={formData.initiative}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
+              name="initiative"
+              value={formData.initiative}
+              onChange={handleChange}
+              required
+              className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             >
-                <option value="">Select Initiative</option>
-                <option value="initiative1">Initiative 1</option>
-                <option value="initiative2">Initiative 2</option>
-                <option value="initiative3">Initiative 3</option>
+              <option value="">Select Initiative</option>
+              <option value="initiative1">Initiative 1</option>
+              <option value="initiative2">Initiative 2</option>
+              <option value="initiative3">Initiative 3</option>
             </select>
-        </div>
+          </div>
 
-        <div>
+          {/* YouTube Link */}
+          <div>
             <label className="block text-sm font-medium text-gray-700">YouTube Link</label>
             <input
               type="url"
-              name="youtube"
-              value={formData.youtube}
+              name="youtube_link" // ✅ correct field name
+              value={formData.youtube_link}
               onChange={handleChange}
               required
               className="mt-1 w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-300"
             />
           </div>
 
+          {/* Description */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700">Description</label>
             <textarea
@@ -106,8 +141,7 @@ const SessionDataAdd = () => {
             />
           </div>
 
-          
-
+          {/* Images */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700">Images (1-50)</label>
             <input
@@ -123,6 +157,7 @@ const SessionDataAdd = () => {
             )}
           </div>
 
+          {/* Submit Button */}
           <div className="md:col-span-2 text-right">
             <button
               type="submit"

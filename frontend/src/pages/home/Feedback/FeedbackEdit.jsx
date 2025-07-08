@@ -1,20 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const FeedbackEdit = () => {
   const { id } = useParams();
-
-  // Dummy existing data for edit
-  const existingFeedback = {
-    id: 1,
-    name: "Ali Khan",
-    country: "Pakistan",
-    img: "ali.jpg",
-    text: "Amazing experience!",
-    initiative: "Sovapa",
-    season: "Spring 2025",
-    status: "active",
-  };
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -35,8 +25,18 @@ const FeedbackEdit = () => {
   ];
 
   useEffect(() => {
-    setFormData(existingFeedback); // Simulate fetch
+    fetchFeedback();
   }, []);
+
+  const fetchFeedback = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/feedback/${id}`);
+      setFormData(res.data);
+    } catch (error) {
+      console.error("Failed to fetch feedback:", error);
+      alert("Error loading feedback");
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,13 +45,33 @@ const FeedbackEdit = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setFormData((prev) => ({ ...prev, img: file ? file.name : prev.img }));
+    if (file) {
+      setFormData((prev) => ({ ...prev, img: file }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Feedback:", formData);
-    alert("Feedback updated successfully!");
+
+    try {
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("country", formData.country);
+      data.append("text", formData.text);
+      data.append("initiative", formData.initiative);
+      data.append("season", formData.season);
+      data.append("status", formData.status);
+      if (formData.img && typeof formData.img === "object") {
+        data.append("img", formData.img);
+      }
+
+      await axios.put(`http://localhost:5000/api/feedback/${id}`, data);
+      alert("Feedback updated successfully!");
+      navigate("/home/feedback/view");
+    } catch (error) {
+      console.error("Update error:", error);
+      alert("Failed to update feedback");
+    }
   };
 
   return (
@@ -138,8 +158,15 @@ const FeedbackEdit = () => {
               onChange={handleImageChange}
               className="mt-1 w-full text-gray-700 border border-gray-300 px-4 py-2 rounded-md file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded-md file:cursor-pointer hover:file:bg-blue-700"
             />
-            {formData.img && (
-              <p className="text-sm mt-1 text-gray-500">Current: {formData.img}</p>
+            {formData.img && typeof formData.img === "string" && (
+              <img
+                src={`http://localhost:5000/uploads/feedback/${formData.img}`}
+                alt="Current"
+                className="mt-2 w-24 h-24 rounded border"
+              />
+            )}
+            {formData.img && typeof formData.img === "object" && (
+              <p className="text-sm mt-1 text-gray-500">New File: {formData.img.name}</p>
             )}
           </div>
 

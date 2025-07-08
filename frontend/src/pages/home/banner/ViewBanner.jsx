@@ -1,33 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const BannerView = () => {
-  const banners = [
-    {
-      id: 1,
-      img: "https://via.placeholder.com/100",
-      heading: "Welcome to Arts Council",
-      description: "Discover creativity and talent",
-      initiative: "Arts Empowerment",
-      season: "Spring 2025",
-      status: "active",
-    },
-    {
-      id: 2,
-      img: "https://via.placeholder.com/100",
-      heading: "Festival of Colors",
-      description: "Celebrating culture and tradition",
-      initiative: "Cultural Fest",
-      season: "Summer 2025",
-      status: "inactive",
-    },
-  ];
+  const [banners, setBanners] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/banner");
+        setBanners(res.data);
+      } catch (err) {
+        console.error("Error fetching banners:", err);
+        alert("Failed to fetch banners");
+      }
+    };
+
+    fetchBanners();
+  }, []);
 
   const handleEdit = (id) => {
-    alert(`Edit banner ${id}`);
+    navigate(`/home/banner/edit/${id}`);
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete banner ${id}`);
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this banner?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/banner/${id}`);
+        setBanners((prev) => prev.filter((b) => b.id !== id));
+        alert("Banner deleted successfully.");
+      } catch (err) {
+        console.error("Error deleting banner:", err);
+        alert("Failed to delete banner.");
+      }
+    }
   };
 
   return (
@@ -58,7 +65,11 @@ const BannerView = () => {
                 <tr key={banner.id}>
                   <td className="px-4 py-2 text-sm">{banner.id}</td>
                   <td className="px-4 py-2 text-sm">
-                    <img src={banner.img} alt="Banner" className="h-10 w-16 rounded object-cover" />
+                    <img
+                      src={`http://localhost:5000/uploads/banner/${banner.img}`}
+                      alt="Banner"
+                      className="h-10 w-16 rounded object-cover"
+                    />
                   </td>
                   <td className="px-4 py-2 text-sm">{banner.heading}</td>
                   <td className="px-4 py-2 text-sm">{banner.description}</td>
@@ -99,7 +110,11 @@ const BannerView = () => {
         <div className="md:hidden space-y-4">
           {banners.map((banner) => (
             <div key={banner.id} className="bg-gray-50 rounded-lg p-4 shadow-sm">
-              <img src={banner.img} alt="Banner" className="w-full h-40 rounded object-cover mb-3" />
+              <img
+                src={`http://localhost:5000/uploads/banner/${banner.img}`}
+                alt="Banner"
+                className="w-full h-40 rounded object-cover mb-3"
+              />
               <h2 className="text-lg font-semibold">{banner.heading}</h2>
               <p className="text-sm text-gray-600 mb-2">{banner.description}</p>
               <p><strong>Initiative:</strong> {banner.initiative}</p>

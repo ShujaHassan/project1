@@ -1,33 +1,39 @@
-const ViewSovapa = () => {
-  const sovapas = [
-    {
-      id: 1,
-      fullname: "Ahsan Raza",
-      poster: "ahsan.jpg",
-      dept_name_1: "Visual Arts",
-      dept_title_1: "Head",
-      dept_name_2: "Performing Arts",
-      dept_title_2: "Coordinator",
-      dept_name_3: "Music",
-      dept_title_3: "Instructor",
-      dept_name_4: "Dance",
-      dept_title_4: "Mentor",
-      dept_name_5: "Film & Media",
-      dept_title_5: "Producer",
-      dept_name_6: "Literature",
-      dept_title_6: "Editor",
-      status: "active",
-    },
-  ];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom"; // ✅ Add this line
 
-  const handleEdit = (id) => {
-    alert(`Edit Sovapa ID: ${id}`);
-    // You can navigate to edit page here
+const ViewSovapa = () => {
+  const [sovapas, setSovapas] = useState([]);
+  const navigate = useNavigate(); // ✅ Hook to navigate
+
+  useEffect(() => {
+    fetchSovapas();
+  }, []);
+
+  const fetchSovapas = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/sovapa");
+      setSovapas(res.data);
+    } catch (error) {
+      console.error("Error fetching Sovapa members:", error);
+    }
   };
 
-  const handleDelete = (id) => {
-    alert(`Delete Sovapa ID: ${id}`);
-    // Delete logic here
+  const handleEdit = (id) => {
+    navigate(`/home/sovapa/edit/${id}`); // ✅ Navigate to edit page
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this Sovapa?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/sovapa/${id}`);
+        fetchSovapas(); // Refresh
+        alert("Sovapa deleted successfully.");
+      } catch (error) {
+        console.error("Delete failed:", error);
+        alert("Failed to delete Sovapa.");
+      }
+    }
   };
 
   return (
@@ -55,7 +61,13 @@ const ViewSovapa = () => {
                 <tr key={sovapa.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 text-sm text-gray-800">{sovapa.id}</td>
                   <td className="px-4 py-2 text-sm text-gray-800">{sovapa.fullname}</td>
-                  <td className="px-4 py-2 text-sm text-gray-800">{sovapa.poster}</td>
+                  <td className="px-4 py-2 text-sm text-gray-800">
+                    <img
+                      src={`http://localhost:5000/uploads/sovapa/${sovapa.poster}`}
+                      alt={sovapa.fullname}
+                      className="w-20 h-20 object-cover rounded shadow"
+                    />
+                  </td>
                   <td className="px-4 py-2 text-sm text-gray-800">
                     {[...Array(6)].map((_, i) => {
                       const dName = sovapa[`dept_name_${i + 1}`];
@@ -94,6 +106,13 @@ const ViewSovapa = () => {
                   </td>
                 </tr>
               ))}
+              {sovapas.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-gray-500">
+                    No Sovapa records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
